@@ -4,9 +4,9 @@ module.exports = {
   client: 'mysql',
   connection: {
     host: '127.0.0.1',
-    user: 'root',
-    password: 'root',
-    database: 'bigcapital_tenant_hqde5zqkylsho06',
+    user: 'bigcapital',
+    password: 'bigcapital',
+    database: 'bigcapital_system',
     charset: 'utf8',
   },
   migrations: {

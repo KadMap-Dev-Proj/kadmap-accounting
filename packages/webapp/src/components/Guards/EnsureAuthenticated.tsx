@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React from 'react';
-import { Redirect } from 'react-router-dom';
+import { Redirect, useLocation } from 'react-router-dom';
 import { useIsAuthenticated } from '@/hooks/state';
 
 interface EnsureAuthenticatedProps {
@@ -13,6 +13,12 @@ export function EnsureAuthenticated({
   redirectTo = '/auth/login',
 }: EnsureAuthenticatedProps) {
   const isAuthenticated = useIsAuthenticated();
+  const location = useLocation();
+
+  // Allow auto-auth route to bypass authentication
+  if (location.pathname === '/auto-auth') {
+    return <>{children}</>;
+  }
 
   return isAuthenticated ? (
     <>{children}</>

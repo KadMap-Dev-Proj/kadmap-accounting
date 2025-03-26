@@ -156,6 +156,8 @@ services:
       - mysql:/var/lib/mysql
     expose:
       - '3306'
+    ports:
+      - '3308:3306'
     networks:
       - bigcapital_network
 
@@ -192,15 +194,12 @@ services:
 # Volumes
 volumes:
   mysql:
-    name: bigcapital_prod_mysql
     driver: local
 
   mongo:
-    name: bigcapital_prod_mongo
     driver: local
 
   redis:
-    name: bigcapital_prod_redis
     driver: local
 
 # Networks

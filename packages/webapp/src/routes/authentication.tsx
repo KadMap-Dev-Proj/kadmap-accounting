@@ -32,4 +32,8 @@ export default [
     path: `${BASE_URL}/register`,
     component: lazy(() => import('@/containers/Authentication/Register')),
   },
+  // {
+  //   path: '/auto-auth',
+  //   component: lazy(() => import('@/containers/autoAuth/AutoAuth')),
+  // },
 ];

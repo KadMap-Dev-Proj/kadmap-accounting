@@ -20,9 +20,9 @@
     "bigcapital": "./bin/bigcapital.js"
   },
   "dependencies": {
-    "@bigcapital/utils": "*",
-    "@bigcapital/email-components": "*",
-    "@bigcapital/pdf-templates": "*",
+    "@bigcapital/utils": "workspace:*",
+    "@bigcapital/email-components": "workspace:*",
+    "@bigcapital/pdf-templates": "workspace:*",
     "@aws-sdk/client-s3": "^3.576.0",
     "@aws-sdk/s3-request-presigner": "^3.583.0",
     "@casl/ability": "^5.4.3",

@@ -25,9 +25,9 @@ export default function DashboardPrivatePages() {
           <Switch>
             <Route path={'/setup'} children={<SetupWizardPage />} />
             <Route path="/">
-              <EnsureOrganizationIsReady>
+              {/* <EnsureOrganizationIsReady> */}
                 <Dashboard />
-              </EnsureOrganizationIsReady>
+              {/* </EnsureOrganizationIsReady> */}
             </Route>
           </Switch>
         </PrivatePagesProvider>

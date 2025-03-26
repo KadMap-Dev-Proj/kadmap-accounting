@@ -84,6 +84,10 @@ export const transformLoginErrorsToToasts = (errors) => {
 export const transformRegisterErrorsToForm = (errors) => {
   const formErrors = {};
 
+  if (!errors || !Array.isArray(errors)) {
+    return formErrors;
+  }
+
   if (errors.some((e) => e.type === REGISTER_ERRORS.PHONE_NUMBER_EXISTS)) {
     formErrors.phone_number = intl.get(
       'the_phone_number_already_used_in_another_account',

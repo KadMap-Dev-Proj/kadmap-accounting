@@ -19,7 +19,7 @@ services:
     expose:
       - '3306'
     ports:
-      - '3306:3306'
+      - '3307:3306'
     deploy:
       restart_policy:
         condition: unless-stopped
@@ -55,13 +55,10 @@ services:
 # Volumes
 volumes:
   mysql:
-    name: bigcapital_dev_mysql
     driver: local
 
   mongo:
-    name: bigcapital_dev_mongo
     driver: local
 
   redis:
-    name: bigcapital_dev_redis
     driver: local

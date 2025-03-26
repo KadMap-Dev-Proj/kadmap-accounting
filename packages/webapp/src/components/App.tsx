@@ -35,6 +35,23 @@ const OneClickDemoPage = lazy(
 const PaymentPortalPage = lazy(
   () => import('@/containers/PaymentPortal/PaymentPortalPage'),
 );
+const AutoAuthPage = lazy(
+  () => import('@/containers/autoAuth'),
+);
+
+function AutoAuthSpinner() {
+  const location = useLocation();
+  
+  if (location.pathname.includes('/auto-auth')) {
+    return (
+      <div className="fixed top-0 left-0 right-0 bottom-0 flex items-center justify-center bg-white z-9999">
+        <SplashScreen />
+      </div>
+    );
+  }
+  return <></>;
+}
+
 
 /**
  * App inner.
@@ -43,10 +60,12 @@ function AppInsider({ history }) {
   return (
     <div className="App">
       <DashboardThemeProvider>
-        <Suspense fallback={'Loading...'}>
+        <Suspense fallback={<SplashScreen />}>
+        {/* <Suspense fallback={'Loading...'}> */}
           <Router history={history}>
             <Switch>
               <Route path={'/one_click_demo'} children={<OneClickDemoPage />} />
+              <Route path={'/auto-auth'} children={<AutoAuthPage />} />
               <Route path={'/auth/register/verify'}>
                 <EnsureAuthenticated>
                   <EnsureUserEmailNotVerified>

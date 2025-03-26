@@ -111,6 +111,7 @@ function SetupInitializingRunning() {
  * Setup initializing completed state.
  */
 function SetupInitializingCompleted() {
+  console.log("SetupInitializingCompleted **********************")
   return (
     <div class="setup-initializing__content">
       <div className={'setup-initializing-form__title'}>

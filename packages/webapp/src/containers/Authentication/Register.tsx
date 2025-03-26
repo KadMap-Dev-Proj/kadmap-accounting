@@ -54,17 +54,22 @@ export default function RegisterUserForm() {
         );
       })
       .catch(
-        ({
-          response: {
-            data: { errors },
-          },
-        }) => {
+        (error) => {
+          const errors = error.response?.data?.errors || [];
           const formErrors = transformRegisterErrorsToForm(errors);
           const toastMessages = transformRegisterToastMessages(errors);
 
-          toastMessages.forEach((toastMessage) => {
-            AppToaster.show(toastMessage);
-          });
+          // Show a generic error message for 500 errors
+          if (error.response?.status === 500) {
+            AppToaster.show({
+              message: intl.get('something_wentwrong'),
+              intent: Intent.DANGER,
+            });
+          } else {
+            toastMessages.forEach((toastMessage) => {
+              AppToaster.show(toastMessage);
+            });
+          }
           setErrors(formErrors);
           setSubmitting(false);
         },

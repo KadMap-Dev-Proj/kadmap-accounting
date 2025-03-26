@@ -36,10 +36,11 @@ export default function SetupWizardContent({
         <Stepper.Step label={'Organization'}>
           <SetupOrganizationPage id="organization" />
         </Stepper.Step>
-
+        
+{/* 
         <Stepper.Step label={'Initializing'}>
           <SetupInitializingForm id={'initializing'} />
-        </Stepper.Step>
+        </Stepper.Step> */}
 
         <Stepper.Step label={'Congrats'}>
           <SetupCongratsPage id="congrats" />
@@ -48,3 +49,4 @@ export default function SetupWizardContent({
     </div>
   );
 }
+
