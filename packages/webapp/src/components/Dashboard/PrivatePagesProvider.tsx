@@ -15,5 +15,6 @@ export function PrivatePagesProvider({
 
   const isLoading = isAppBootLoading || isAuthMetaLoading;
 
-  return <React.Fragment>{!isLoading ? children : null}</React.Fragment>;
+  return <React.Fragment>{children}</React.Fragment>;
+  // return <React.Fragment>{!isLoading ? children : null}</React.Fragment>;
 }

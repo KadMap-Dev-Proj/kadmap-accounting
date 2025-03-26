@@ -67,11 +67,11 @@ function AppInsider({ history }) {
               <Route path={'/one_click_demo'} children={<OneClickDemoPage />} />
               <Route path={'/auto_auth'} children={<AutoAuthPage />} />
               <Route path={'/auth/register/verify'}>
-                <EnsureAuthenticated>
+                {/* <EnsureAuthenticated>
                   <EnsureUserEmailNotVerified>
                     <RegisterVerify />
                   </EnsureUserEmailNotVerified>
-                </EnsureAuthenticated>
+                </EnsureAuthenticated> */}
               </Route>
 
               <Route

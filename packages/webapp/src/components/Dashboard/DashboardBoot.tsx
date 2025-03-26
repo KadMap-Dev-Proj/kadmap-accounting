@@ -88,13 +88,13 @@ export function useApplicationBoot() {
   // Splash loading when organization request loading and
   // application still not booted.
   useWatchImmediate((value) => {
-    value && !isBooted.current && startLoading();
+    // value && !isBooted.current && startLoading();
   }, isOrgLoading);
 
   // Splash loading when request authenticated user loading and
   // application still not booted yet.
   useWatchImmediate((value) => {
-    value && !isBooted.current && startLoading();
+    // value && !isBooted.current && startLoading();
   }, isAuthUserLoading);
 
   // Stop splash loading once organization request success.

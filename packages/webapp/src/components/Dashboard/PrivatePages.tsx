@@ -22,14 +22,15 @@ export default function DashboardPrivatePages() {
     <EnsureAuthenticated>
       <EnsureUserEmailVerified>
         <PrivatePagesProvider>
-          <Switch>
-            <Route path={'/setup'} children={<SetupWizardPage />} />
+          {/* <Switch> */}
+          {/* <Route path="/auto_a"> */}
+            {/* <Route path={'/setup'} children={<SetupWizardPage />} /> */}
             <Route path="/">
               {/* <EnsureOrganizationIsReady> */}
                 <Dashboard />
               {/* </EnsureOrganizationIsReady> */}
             </Route>
-          </Switch>
+          {/* </Switch> */}
         </PrivatePagesProvider>
       </EnsureUserEmailVerified>
     </EnsureAuthenticated>
