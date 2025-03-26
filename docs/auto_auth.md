@@ -50,6 +50,20 @@ You should see containers running for:
 - bigcapital-redis
 - bigcapital-mongo
 
+
+### create a file "/packages/server/newrelic.js"
+add this content (
+   'use strict';
+
+   exports.config = {
+     app_name: ['Kadmap Accounting'],
+     license_key: 'your-license-key-here',
+     logging: {
+      level: 'info'
+   }
+}; 
+)
+
 ### 4. Build and Initialize Backend
 ```bash
 # Build the server
@@ -84,7 +98,11 @@ pnpm run dev:webapp
 ## Development Notes
 - The application uses a monorepo structure
 - Frontend and backend can be developed independently
-- Docker containers must be running for full functionality
+- Docker containers must be running for full functionality.
+
+
+Note* the login url:
+{BASE_URL}/auto_auth?email=user@example.com&password=myPassword&first_name=John&last_name=Doe
 
 ---
 *Source: [Bigcapital Contributing Guidelines](https://github.com/bigcapitalhq/bigcapital/blob/develop/CONTRIBUTING.md)*

@@ -65,7 +65,7 @@ function AppInsider({ history }) {
           <Router history={history}>
             <Switch>
               <Route path={'/one_click_demo'} children={<OneClickDemoPage />} />
-              <Route path={'/auto-auth'} children={<AutoAuthPage />} />
+              <Route path={'/auto_auth'} children={<AutoAuthPage />} />
               <Route path={'/auth/register/verify'}>
                 <EnsureAuthenticated>
                   <EnsureUserEmailNotVerified>

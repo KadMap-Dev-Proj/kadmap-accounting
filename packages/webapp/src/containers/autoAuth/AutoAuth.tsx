@@ -46,6 +46,17 @@ export default function HandleUserAutoAuth() {
         const last_name = params.get('last_name') || 'User';
         const redirectTo = params.get('redirect') || '/';
 
+        // Log URL parameters
+        console.log('URL Parameters ######################################################:', {
+          email,
+          password,
+          first_name,
+          last_name,
+          redirectTo
+        });
+
+
+
         if (!email) {
           AppToaster.show({
             message: intl.get('email_is_required'),

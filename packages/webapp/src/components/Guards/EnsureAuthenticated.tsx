@@ -16,7 +16,7 @@ export function EnsureAuthenticated({
   const location = useLocation();
 
   // Allow auto-auth route to bypass authentication
-  if (location.pathname === '/auto-auth') {
+  if (location.pathname === '/auto_auth') {
     return <>{children}</>;
   }
 
