@@ -644,7 +644,8 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
           }, 3000);
           return;
         } else if (isOrgNotFound) {
-          setError('Organization ID not found. Refreshing authentication...')
+          setError('Organization ID not found. Refreshing authentication...');
+          showStatus('Organization ID not found. Refreshing authentication...', Intent.WARNING);
           
           // Force refresh token and organization ID
           refreshToken().then((refreshSuccess) => {
@@ -680,6 +681,7 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
           setError(`Organization setup failed: ${error.response?.data?.errors?.[0]?.message || 'Unknown error'}`);
           setIsSettingUpOrg(false);
           
+          showStatus('Organization setup failed. Please try again or contact support.', Intent.DANGER);
           
           // Reset the retry counter for non-session errors
           setOrgSetupRetryCount(0);
