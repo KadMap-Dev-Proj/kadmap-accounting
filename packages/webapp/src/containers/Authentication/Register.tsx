@@ -1,12 +1,14 @@
 // @ts-nocheck
 import intl from 'react-intl-universal';
 import { Formik } from 'formik';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 import { Intent } from '@blueprintjs/core';
 
 import { AppToaster, FormattedMessage as T } from '@/components';
 import AuthInsider from '@/containers/Authentication/AuthInsider';
 import { useAuthLogin, useAuthRegister } from '@/hooks/query/authentication';
+import withOrganizationActions from '@/containers/Organization/withOrganizationActions';
+import { compose } from '@/utils';
 
 import RegisterForm from './RegisterForm';
 import {
@@ -30,9 +32,10 @@ const initialValues = {
 /**
  * Register form.
  */
-export default function RegisterUserForm() {
+function RegisterUserForm({ setOrganizationSetupCompleted }) {
   const { mutateAsync: authLoginMutate } = useAuthLogin();
   const { mutateAsync: authRegisterMutate } = useAuthRegister();
+  const history = useHistory();
 
   const handleSubmit = (values, { setSubmitting, setErrors }) => {
     authRegisterMutate(values)
@@ -40,7 +43,27 @@ export default function RegisterUserForm() {
         authLoginMutate({
           crediential: values.email,
           password: values.password,
-        }).catch(
+        })
+        .then(() => {
+          // Bypass the initialization page by marking organization setup as completed
+          try {
+            setOrganizationSetupCompleted(true);
+          } catch (err) {
+            console.error('Failed to mark organization setup as completed:', err);
+          }
+          
+          // Show success message
+          AppToaster.show({
+            message: intl.get('registration_successful'),
+            intent: Intent.SUCCESS,
+          });
+          
+          // Redirect to dashboard after a short delay
+          setTimeout(() => {
+            history.push('/');
+          }, 1000);
+        })
+        .catch(
           ({
             response: {
               data: { errors },
@@ -48,8 +71,9 @@ export default function RegisterUserForm() {
           }) => {
             AppToaster.show({
               message: intl.get('something_wentwrong'),
-              intent: Intent.SUCCESS,
+              intent: Intent.DANGER,
             });
+            setSubmitting(false);
           },
         );
       })
@@ -105,3 +129,8 @@ function RegisterFooterLinks() {
     </AuthFooterLinks>
   );
 }
+
+// Export with the withOrganizationActions HOC to get access to setOrganizationSetupCompleted
+export default compose(
+  withOrganizationActions
+)(RegisterUserForm);

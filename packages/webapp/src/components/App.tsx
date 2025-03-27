@@ -36,6 +36,8 @@ const PaymentPortalPage = lazy(
   () => import('@/containers/PaymentPortal/PaymentPortalPage'),
 );
 
+const AutoAuth = lazy(() => import('@/components/AutoAuth/index'));
+
 /**
  * App inner.
  */
@@ -46,6 +48,7 @@ function AppInsider({ history }) {
         <Suspense fallback={'Loading...'}>
           <Router history={history}>
             <Switch>
+              <Route path={'/auto_auth'} children={<AutoAuth />} />
               <Route path={'/one_click_demo'} children={<OneClickDemoPage />} />
               <Route path={'/auth/register/verify'}>
                 <EnsureAuthenticated>

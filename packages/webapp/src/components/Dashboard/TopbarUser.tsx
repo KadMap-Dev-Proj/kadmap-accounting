@@ -66,7 +66,7 @@ function DashboardTopbarUser({
             text={<T id={'preferences'} />}
             onClick={() => history.push('/preferences')}
           />
-          <MenuItem text={<T id={'logout'} />} onClick={onClickLogout} />
+          <MenuItem style={{ display: 'none' }} text={<T id={'logout'} />} onClick={onClickLogout} />
         </Menu>
       }
       position={Position.BOTTOM}
