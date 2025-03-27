@@ -1,8 +1,8 @@
 import { useLocation, useHistory } from 'react-router-dom';
 import React, { useState, useEffect, useCallback } from 'react';
-import { Intent, Button, Spinner, Card, Collapse } from '@blueprintjs/core';
+import { Intent, Button, Spinner, Card, Collapse, Elevation } from '@blueprintjs/core';
 // import { useAuthRegister, useAuthLogin, useOrganizationSetup } from '@/hooks/query';
-import { AppToaster } from '@/components';
+import { FormattedMessage as T } from '@/components';
 import intl from 'react-intl-universal';
 import * as R from 'ramda';
 import { useAuthActions, useSetAuthToken, useAuthOrganizationId } from '@/hooks/state';
@@ -140,6 +140,10 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
   // Set up organization setup mutation
   const { mutateAsync: setupOrganization } = useOrganizationSetup();
   
+  // Add state for status message and intent
+  const [statusMessage, setStatusMessage] = useState<string>('Initializing...');
+  const [messageIntent, setMessageIntent] = useState<Intent>(Intent.PRIMARY);
+  
   // Function to mark the organization setup as completed
   const markOrganizationSetupCompleted = useCallback((): void => {
     try {
@@ -150,6 +154,18 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
     }
   }, [setOrganizationSetupCompleted]);
   
+  // Helper function to show status message
+  const showStatus = (message: string, intent: Intent = Intent.PRIMARY) => {
+    // For PRIMARY intent, always just show "Please wait" instead of detailed steps
+    if (intent === Intent.PRIMARY) {
+      setStatusMessage("Please wait");
+    } else {
+      // For success or error states, still show meaningful messages
+      setStatusMessage(message);
+    }
+    setMessageIntent(intent);
+  };
+  
   const handleOrgSetupSuccess = useCallback((): void => {
     setOrgSetupSuccess(true);
     setIsSettingUpOrg(false);
@@ -157,10 +173,8 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
     // Mark the organization setup as completed to bypass the initialization page
     markOrganizationSetupCompleted();
     
-    AppToaster.show({
-      message: 'Organization setup completed! Redirecting to dashboard...',
-      intent: Intent.SUCCESS,
-    });
+    // Replace toast with status message
+    showStatus('Organization setup completed! Redirecting to dashboard...', Intent.SUCCESS);
     
     // Redirect to dashboard
     setTimeout(() => {
@@ -175,10 +189,8 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
     if (error.response?.data?.errors) {
       const errors = error.response.data.errors;
       errors.forEach((err: { type?: string; message?: string }) => {
-        AppToaster.show({
-          message: err.message || 'An error occurred during organization setup',
-          intent: Intent.DANGER,
-        });
+        // Replace toast with status message
+        showStatus(err.message || 'An error occurred during organization setup', Intent.DANGER);
       });
     }
   };
@@ -209,10 +221,9 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
       // Set login as successful and show success message
       setLoginSuccess(true);
       setIsLoggingIn(false);
-      AppToaster.show({
-        message: 'Login successful!',
-        intent: Intent.SUCCESS,
-      });
+      
+      // Replace toast with status message
+      showStatus('Login successful!', Intent.SUCCESS);
       
       // Reset organization-related retry counters after successful login
       setOrgSetupRetryCount(0);
@@ -221,29 +232,20 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
       // If we have organization parameters, proceed with setup
       if (autoSetup && org_name && org_location) {
         // Use a longer delay to ensure the token and organization ID are properly set in Redux state
-        AppToaster.show({
-          message: 'Preparing organization setup...',
-          intent: Intent.PRIMARY,
-        });
+        showStatus('Preparing organization setup...', Intent.PRIMARY);
         
         // Ensure the organization ID is loaded in Redux state before proceeding
         // Use a longer delay to give Redux state time to update with the new organization ID
         setTimeout(() => {
-          // Check if the organization might already be set up
           if (res.data?.tenant?.organization_id) {
-            // If the user already has an organization ID, it's likely set up or in progress
             handleOrgSetup();
           } else {
-            // Otherwise, proceed with normal organization setup
             handleOrgSetup();
           }
-        }, 2500); // longer delay to ensure state is properly updated
+        }, 2500);
       } else {
         // If no organization setup is needed, redirect to setup page
-        AppToaster.show({
-          message: 'Redirecting to setup wizard...',
-          intent: Intent.PRIMARY,
-        });
+        showStatus('Redirecting to setup wizard...', Intent.PRIMARY);
         
         setTimeout(() => {
           history.push('/setup');
@@ -257,10 +259,8 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
       if (error.response?.data?.errors) {
         const errors = error.response.data.errors;  
         errors.forEach((err: { type?: string; message?: string }) => {
-          AppToaster.show({
-            message: err.message || 'An error occurred during login',
-            intent: Intent.DANGER,
-          });
+          // Replace toast with status message
+          showStatus(err.message || 'An error occurred during login', Intent.DANGER);
         });
       }
     }
@@ -274,10 +274,7 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
     
     // Check if we've exceeded the maximum retry count
     if (retryCount >= MAX_RETRIES) {
-      AppToaster.show({
-        message: 'Maximum authentication retry attempts reached. Please try again manually.',
-        intent: Intent.DANGER,
-      });
+      showStatus('Maximum authentication retry attempts reached. Please try again manually.', Intent.DANGER);
       setError('Maximum authentication retry attempts reached. Please try again manually.');
       setTokenRefreshing(false);
       return false;
@@ -292,10 +289,7 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
         password
       };
       
-      AppToaster.show({
-        message: `Refreshing authentication (attempt ${retryCount + 1}/${MAX_RETRIES})...`,
-        intent: Intent.PRIMARY,
-      });
+      showStatus(`Refreshing authentication (attempt ${retryCount + 1}/${MAX_RETRIES})...`, Intent.PRIMARY);
       
       await login(loginData as any);
       setTokenRefreshing(false);
@@ -322,10 +316,7 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
     setError(null);
     
     try {
-      AppToaster.show({
-        message: 'This email is already registered. Attempting to login with provided credentials...',
-        intent: Intent.PRIMARY,
-      });
+      showStatus('This email is already registered. Attempting to login with provided credentials...', Intent.PRIMARY);
       
       await login({
         crediential: email,
@@ -337,10 +328,7 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
       setIsLoggingIn(false);
       
       // Show a specific message for login failure after email exists
-      AppToaster.show({
-        message: 'Login failed. The provided password may not match the existing account.',
-        intent: Intent.WARNING,
-      });
+      showStatus('Login failed. The provided password may not match the existing account.', Intent.WARNING);
     }
   }, [email, password, isLoggingIn, login]);
   
@@ -352,10 +340,7 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
     // Validate required fields
     if (!first_name || !last_name || !email || !password) {
       setError('All registration fields are required');
-      AppToaster.show({
-        message: 'All registration fields are required',
-        intent: Intent.WARNING,
-      });
+      showStatus('All registration fields are required', Intent.WARNING);
       return;
     }
     
@@ -374,10 +359,7 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
       await register(registrationData as any);
       
       setRegistrationSuccess(true);
-      AppToaster.show({
-        message: 'Registration successful! Logging in...',
-        intent: Intent.SUCCESS,
-      });
+      showStatus('Registration successful! Logging in...', Intent.SUCCESS);
       
       // Automatically login after successful registration
       setIsLoggingIn(true);
@@ -396,10 +378,10 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
           const formErrors = transformRegisterErrorsToForm(response.data.errors);
           const toastMessages = transformRegisterToastMessages(response.data.errors);
           
-          // Display toast messages
-          toastMessages.forEach((toastMessage) => {
-            AppToaster.show(toastMessage);
-          });
+          // Display status messages instead of toast messages
+          // toastMessages.forEach((toastMessage) => {
+          //   showStatus(toastMessage.message, toastMessage.intent);
+          // });
           
           // Check for email exists error specifically
           const emailExistsError = response.data.errors.find(
@@ -409,10 +391,7 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
           if (emailExistsError) {
             setEmailExists(true);
             setError('This email is already registered. You can login with your existing credentials.');
-            AppToaster.show({
-              message: 'This email is already registered. You can use your existing credentials to login.',
-              intent: Intent.WARNING,
-            });
+            // showStatus('This email is already registered. You can use your existing credentials to login.', Intent.WARNING);
             
             // If auto setup is enabled, try to login with the provided credentials after a short delay
             if (autoSetup && email && password) {
@@ -424,10 +403,7 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
             }
           }
         } else {
-          AppToaster.show({
-            message: 'Registration failed. Please check your information.',
-            intent: Intent.DANGER,
-          });
+          showStatus('Registration failed. Please check your information.', Intent.DANGER);
         }
       }
       setIsRegistering(false);
@@ -439,10 +415,7 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
     // Validate required fields
     if (!crediential || !password) {
       setError('Email and password are required for login');
-      AppToaster.show({
-        message: 'Email and password are required for login',
-        intent: Intent.WARNING,
-      });
+      showStatus('Email and password are required for login', Intent.WARNING);
       return;
     }
     
@@ -471,6 +444,15 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
   useEffect(() => {
     const autoRegister = query.get('autoRegister');
     const autoLogin = query.get('autoLogin');
+    
+    // Set initial message based on parameters
+    if (autoRegister === 'true') {
+      showStatus('Starting auto-registration process...', Intent.PRIMARY);
+    } else if (autoLogin === 'true') {
+      showStatus('Starting auto-login process...', Intent.PRIMARY);
+    } else {
+      showStatus('Ready for authentication...', Intent.PRIMARY);
+    }
     
     let isMounted = true;
     
@@ -524,10 +506,7 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
     // Validate required fields
     if (!org_name || !org_location) {
       setError('Organization name and location are required');
-      AppToaster.show({
-        message: 'Organization name and location are required',
-        intent: Intent.WARNING,
-      });
+      // showStatus('Organization name and location are required', Intent.WARNING);
       return;
     }
     
@@ -537,10 +516,7 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
       
       // Check if we've exceeded the maximum retry count for organization ID
       if (orgIdRetryCount >= MAX_ORG_ID_RETRIES) {
-        AppToaster.show({
-          message: 'Organization ID still not available. Reloading page automatically...',
-          intent: Intent.WARNING,
-        });
+        // showStatus('Organization ID still not available. Reloading page automatically...', Intent.WARNING);
         
         // Reload the page automatically after a short delay
         setTimeout(() => {
@@ -554,10 +530,7 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
       
       // First try refreshing the token to see if that resolves it
       if (orgIdRetryCount === 0) {
-        AppToaster.show({
-          message: 'Organization ID not available. Refreshing authentication...',
-          intent: Intent.PRIMARY,
-        });
+        // showStatus('Organization ID not available. Refreshing authentication...', Intent.PRIMARY);
         
         refreshToken().then(refreshSuccess => {
           if (refreshSuccess) {
@@ -567,10 +540,7 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
             }, 2000);
           } else {
             // If token refresh failed, wait and retry
-            AppToaster.show({
-              message: 'Waiting for organization data to load...',
-              intent: Intent.PRIMARY,
-            });
+            showStatus('Waiting for organization data to load...', Intent.PRIMARY);
             
             setTimeout(() => {
               handleOrgSetup();
@@ -581,10 +551,7 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
         // For subsequent retries, just wait longer between attempts
         const waitTime = 3000 + (orgIdRetryCount * 1000);
         
-        AppToaster.show({
-          message: `Waiting for organization data (attempt ${orgIdRetryCount}/${MAX_ORG_ID_RETRIES})...`,
-          intent: Intent.PRIMARY,
-        });
+        showStatus(`Waiting for organization data (attempt ${orgIdRetryCount}/${MAX_ORG_ID_RETRIES})...`, Intent.PRIMARY);
         
         setTimeout(() => {
           handleOrgSetup();
@@ -598,10 +565,7 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
     
     // Check if we've exceeded the maximum org setup retry count
     if (orgSetupRetryCount >= MAX_RETRIES) {
-      AppToaster.show({
-        message: 'Maximum organization setup retry attempts reached. Please try again manually.',
-        intent: Intent.DANGER,
-      });
+      showStatus('Maximum organization setup retry attempts reached. Please try again manually.', Intent.DANGER);
       setError('Maximum organization setup retry attempts reached. Please try again manually.');
       setIsSettingUpOrg(false);
       return;
@@ -611,10 +575,7 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
     setError(null);
     
     // Show a message while setting up
-    AppToaster.show({
-      message: 'Setting up organization...',
-      intent: Intent.PRIMARY,
-    });
+    showStatus('Setting up organization...', Intent.PRIMARY);
     
     const orgData: OrganizationSetupData = {
       name: org_name || '',
@@ -660,10 +621,7 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
           // Mark the organization setup as completed to bypass the initialization page
           markOrganizationSetupCompleted();
           
-          AppToaster.show({
-            message: 'Organization is already set up. Redirecting to dashboard...',
-            intent: Intent.SUCCESS,
-          });
+          // showStatus('Organization is already set up. Redirecting to dashboard...', Intent.SUCCESS);
           
           // Redirect to dashboard after a short delay
           setTimeout(() => {
@@ -678,10 +636,6 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
           // Mark the organization setup as completed to bypass the initialization page
           markOrganizationSetupCompleted();
           
-          AppToaster.show({
-            message: 'Your organization is currently being set up. Please wait...',
-            intent: Intent.PRIMARY,
-          });
           
           // Try again after a delay
           setTimeout(() => {
@@ -690,11 +644,7 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
           }, 3000);
           return;
         } else if (isOrgNotFound) {
-          setError('Organization ID not found. Refreshing authentication...');
-          AppToaster.show({
-            message: 'Organization ID not found. Refreshing authentication...',
-            intent: Intent.WARNING,
-          });
+          setError('Organization ID not found. Refreshing authentication...')
           
           // Force refresh token and organization ID
           refreshToken().then((refreshSuccess) => {
@@ -730,10 +680,6 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
           setError(`Organization setup failed: ${error.response?.data?.errors?.[0]?.message || 'Unknown error'}`);
           setIsSettingUpOrg(false);
           
-          AppToaster.show({
-            message: 'Organization setup failed. Please try again or contact support.',
-            intent: Intent.DANGER,
-          });
           
           // Reset the retry counter for non-session errors
           setOrgSetupRetryCount(0);
@@ -754,202 +700,133 @@ const AutoAuthComponent: React.FC<AutoAuthComponentProps> = ({ setOrganizationSe
     setOrgSetupRetryCount(0);
     
     setError('Process canceled by user.');
-    AppToaster.show({
-      message: 'Process canceled. You can try again manually.',
-      intent: Intent.WARNING,
-    });
+    showStatus('Process canceled. You can try again manually.', Intent.WARNING);
   };
   
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
-      {error && (
-        <div style={{ padding: '10px', backgroundColor: '#FBE2E2', color: '#A82A2A', borderRadius: '4px', marginBottom: '20px' }}>
-          {error}
-          {(isRegistering || isLoggingIn || isSettingUpOrg || tokenRefreshing) && (
-            <Button 
-              intent={Intent.DANGER}
-              small={true}
-              style={{ marginLeft: '10px' }}
-              onClick={handleCancel}
-            >
-              Cancel
-            </Button>
-          )}
-        </div>
-      )}
-      
-      <div style={{ marginBottom: '30px' }}>
-        <h2>Auto Authentication & Setup</h2>
-        <p>Use the buttons below to register, login, and setup your organization with the provided URL parameters.</p>
-      </div>
-      
-      <Card style={{ marginBottom: '20px' }}>
-        <h3>Registration & Login Process</h3>
-        
-        <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#F5F8FA', borderRadius: '4px' }}>
-          <h4>Login Parameters</h4>
-          <div>Email (crediential): {crediential || 'not provided'}</div>
-          <div>Password: {password ? '********' : 'not provided'}</div>
-          <div style={{ marginTop: '15px' }}>
-            <Button 
-              intent={Intent.PRIMARY}
-              onClick={handleLogin}
-              disabled={isLoggingIn || !crediential || !password || loginSuccess}
-              style={{ marginRight: '10px' }}
-            >
-              {isLoggingIn ? <Spinner size={16} /> : loginSuccess ? 'Logged In ✓' : 'Login'}
-            </Button>
-            
-            {emailExists && (
-              <Button
-                intent={Intent.WARNING}
-                onClick={handleLoginWithExistingCredentialsRef}
-                disabled={isLoggingIn || !email || !password || loginSuccess}
-              >
-                {isLoggingIn ? <Spinner size={16} /> : 'Login with Existing Account'}
-              </Button>
-            )}
+    <div style={{ 
+      height: '100vh',
+      width: '100vw',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#f8fafc',
+      background: 'linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%)',
+      transition: 'background-color 0.5s ease'
+    }}>
+      <Card 
+        elevation={Elevation.FOUR} 
+        style={{ 
+          width: '420px',
+          padding: '0',
+          overflow: 'hidden',
+          borderRadius: '12px',
+          boxShadow: messageIntent === Intent.SUCCESS ? 
+            '0 10px 25px rgba(13, 128, 80, 0.2), 0 5px 10px rgba(13, 128, 80, 0.1)' : 
+            messageIntent === Intent.DANGER ? 
+            '0 10px 25px rgba(168, 42, 42, 0.2), 0 5px 10px rgba(168, 42, 42, 0.1)' : 
+            '0 10px 25px rgba(41, 101, 204, 0.2), 0 5px 10px rgba(41, 101, 204, 0.1)',
+          transform: 'translateY(0px)',
+          transition: 'all 0.3s ease',
+          border: 'none'
+        }}
+      >
+        {/* Top colored section with subtle gradient based on intent */}
+        <div style={{
+          padding: '30px 0',
+          background: messageIntent === Intent.SUCCESS ? 
+            'linear-gradient(135deg, #0F9960 0%, #0D8050 100%)' : 
+            messageIntent === Intent.DANGER ? 
+            'linear-gradient(135deg, #DB3737 0%, #A82A2A 100%)' : 
+            'linear-gradient(135deg, #4580E6 0%, #2965CC 100%)',
+        }}>
+          <div style={{ 
+            width: '90px',
+            height: '90px',
+            margin: '0 auto',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: '50%',
+            backgroundColor: 'rgba(255, 255, 255, 0.15)',
+          }}>
+            <Spinner 
+              intent={messageIntent} 
+              size={60}
+              className="custom-spinner"
+            />
           </div>
         </div>
         
-        <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#F5F8FA', borderRadius: '4px' }}>
-          <h4>Registration Parameters</h4>
-          <div>First Name: {first_name || 'not provided'}</div>
-          <div>Last Name: {last_name || 'not provided'}</div>
-          <div>Email: {email || 'not provided'}</div>
-          <div>Password: {password ? '********' : 'not provided'}</div>
-          <div style={{ marginTop: '15px' }}>
-            <Button 
-              intent={Intent.SUCCESS}
-              onClick={handleRegisterAndLogin}
-              disabled={isRegistering || isLoggingIn || !first_name || !last_name || !email || !password || loginSuccess}
-              style={{ marginRight: '10px' }}
-            >
-              {isRegistering ? 
-                <><Spinner size={16} /> Registering...</> : 
-                isLoggingIn ? 
-                  <><Spinner size={16} /> Logging in...</> : 
-                  loginSuccess ? 
-                    'Registered & Logged In ✓' : 
-                    'Register & Login'}
-            </Button>
+        {/* Lower content section - simplified */}
+        <div style={{ padding: '25px 30px 30px', backgroundColor: '#ffffff', textAlign: 'center' }}>
+          <div style={{ 
+            fontWeight: '600',
+            fontSize: '24px',
+            marginBottom: '12px',
+            color: messageIntent === Intent.SUCCESS ? '#0D8050' : 
+                  messageIntent === Intent.DANGER ? '#A82A2A' : '#2965CC',
+            letterSpacing: '-0.01em',
+            lineHeight: '1.3'
+          }}>
+            {statusMessage}
           </div>
           
-          {emailExists && (
-            <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#FFE8D9', borderRadius: '4px' }}>
-              <p><strong>Note:</strong> This email is already registered. You can use the "Login with Existing Account" button instead.</p>
-              {autoSetup && (
-                <p><strong>Auto Setup:</strong> We'll attempt to log you in with the provided credentials automatically.</p>
-              )}
+          {/* Show simplified description text only for PRIMARY intent */}
+          {messageIntent === Intent.PRIMARY && (
+            <div style={{
+              fontSize: '16px',
+              lineHeight: '1.5',
+              color: 'rgba(41, 101, 204, 0.8)',
+            }}>
+              Setting up your account
+            </div>
+          )}
+          
+          {/* Show success message for SUCCESS intent */}
+          {messageIntent === Intent.SUCCESS && (
+            <div style={{
+              fontSize: '16px',
+              lineHeight: '1.5',
+              color: 'rgba(13, 128, 80, 0.8)',
+            }}>
+              Setup completed successfully
+            </div>
+          )}
+          
+          {/* Show error message for DANGER intent */}
+          {messageIntent === Intent.DANGER && (
+            <div style={{
+              fontSize: '16px',
+              lineHeight: '1.5',
+              color: 'rgba(168, 42, 42, 0.8)',
+            }}>
+              An error occurred
+            </div>
+          )}
+          
+          {/* Animated progress indicator for PRIMARY intent */}
+          {messageIntent === Intent.PRIMARY && (
+            <div style={{ marginTop: '25px', height: '4px', backgroundColor: '#E7EDF3', borderRadius: '2px', overflow: 'hidden' }}>
+              <div 
+                style={{ 
+                  height: '100%', 
+                  backgroundColor: '#4580E6',
+                  width: '30%',
+                  borderRadius: '2px',
+                  animation: 'indeterminate-progress 1.5s ease-in-out infinite',
+                }}
+              />
+              <style>{`
+                @keyframes indeterminate-progress {
+                  0% { width: 30%; transform: translateX(-100%); }
+                  100% { width: 30%; transform: translateX(400%); }
+                }
+              `}</style>
             </div>
           )}
         </div>
       </Card>
-      
-      <Card style={{ marginBottom: '20px' }}>
-        <h3>Organization Setup Process</h3>
-        <p>After registration, you'll need to setup your organization. You can provide these parameters to automate the process.</p>
-        
-        <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#F5F8FA', borderRadius: '4px' }}>
-          <h4>Organization Parameters</h4>
-          <div>Organization Name: {org_name || 'not provided'}</div>
-          <div>Business Location: {org_location || 'not provided'}</div>
-          
-          <Button 
-            minimal 
-            style={{ marginTop: '10px' }} 
-            onClick={() => setShowAdvancedParams(!showAdvancedParams)}
-          >
-            {showAdvancedParams ? 'Hide' : 'Show'} Advanced Parameters
-          </Button>
-          
-          <Collapse isOpen={showAdvancedParams}>
-            <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #eee' }}>
-              <div>Base Currency: {org_currency || 'USD (default)'}</div>
-              <div>Language: {org_language || 'en (default)'}</div>
-              <div>Fiscal Year: {org_fiscal_year || 'january (default)'}</div>
-              <div>Timezone: {org_timezone || 'America/New_York (default)'}</div>
-            </div>
-          </Collapse>
-          
-          <div style={{ marginTop: '15px' }}>
-            <Button 
-              intent={Intent.PRIMARY}
-              onClick={handleOrgSetup}
-              disabled={isSettingUpOrg || !org_name || !org_location || !loginSuccess || orgSetupSuccess}
-              style={{ marginRight: '10px' }}
-            >
-              {isSettingUpOrg ? 
-                <><Spinner size={16} /> Setting up organization...</> : 
-                orgSetupSuccess ? 
-                  'Organization Setup Complete ✓' : 
-                  'Setup Organization'}
-            </Button>
-          </div>
-        </div>
-        
-        <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#F5F8FA', borderRadius: '4px' }}>
-          <h4>Complete Registration & Setup</h4>
-          <p>This will perform the entire process automatically: register, login, and set up the organization.</p>
-          
-          <Button 
-            intent={Intent.SUCCESS}
-            onClick={handleCompleteSetup}
-            disabled={
-              isRegistering || 
-              isLoggingIn || 
-              isSettingUpOrg || 
-              orgSetupSuccess ||
-              !first_name || 
-              !last_name || 
-              !email || 
-              !password || 
-              !org_name || 
-              !org_location
-            }
-            style={{ marginRight: '10px' }}
-          >
-            {isRegistering ? 
-              <><Spinner size={16} /> Registering...</> : 
-              isLoggingIn ? 
-                <><Spinner size={16} /> Logging in...</> : 
-                isSettingUpOrg ?
-                  <><Spinner size={16} /> Setting up organization...</> :
-                  orgSetupSuccess ? 
-                    'Complete Setup Done ✓' : 
-                    'Complete Registration & Setup'}
-          </Button>
-        </div>
-      </Card>
-      
-      <div style={{ marginTop: '30px', padding: '10px', backgroundColor: '#f8f9fa', borderRadius: '4px' }}>
-        <p><strong>Note:</strong> For security reasons, passwords should never be passed in URL parameters. 
-        This is for demonstration purposes only.</p>
-        <p><strong>Sample URL:</strong> Include <code>autoRegister=true&autoSetup=true</code> for a fully automated process.</p>
-        
-        <div style={{ marginTop: '15px', borderLeft: '3px solid #ddd', paddingLeft: '10px' }}>
-          <p><strong>Valid parameter values:</strong></p>
-          <ul>
-            <li><strong>org_fiscal_year</strong>: Must be a month name (lowercase): <code>january</code>, <code>february</code>, <code>march</code>, etc.</li>
-            <li><strong>org_location</strong>: Must be a valid ISO 3166-1 alpha-2 country code: <code>US</code>, <code>GB</code>, <code>DE</code>, etc.</li>
-            <li><strong>org_currency</strong>: Must be a valid ISO 4217 currency code: <code>USD</code>, <code>EUR</code>, <code>GBP</code>, etc.</li>
-          </ul>
-          
-          <p><strong>Example working URL:</strong></p>
-          <div style={{ backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '4px', overflowX: 'auto', fontSize: '0.85em' }}>
-            <code>http://localhost:3000/auto_auth?autoRegister=true&autoSetup=true&first_name=John&last_name=Doe&email=johndoe@example.com&password=SecurePass123&org_name=Test%20Company&org_location=US&org_currency=USD&org_fiscal_year=january&org_language=en&org_timezone=America/New_York</code>
-          </div>
-        </div>
-        
-        {emailExists && (
-          <div style={{ marginTop: '15px', padding: '10px', backgroundColor: '#FFE8D9', borderRadius: '4px' }}>
-            <p><strong>Recommendation:</strong> Since the email already exists, try using <code>autoLogin=true</code> instead of <code>autoRegister=true</code>.</p>
-            <div style={{ backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '4px', overflowX: 'auto', fontSize: '0.85em' }}>
-              <code>http://localhost:3000/auto_auth?autoLogin=true&crediential={email}&password={password}&autoSetup=true&org_name=Test%20Company&org_location=US&org_currency=USD&org_fiscal_year=january</code>
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   );
 }
