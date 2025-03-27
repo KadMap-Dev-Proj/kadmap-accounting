@@ -8,6 +8,7 @@ import { PrivatePagesProvider } from './PrivatePagesProvider';
 import EnsureOrganizationIsReady from '../Guards/EnsureOrganizationIsReady';
 import { EnsureAuthenticated } from '../Guards/EnsureAuthenticated';
 import { EnsureUserEmailVerified } from '../Guards/EnsureUserEmailVerified';
+import AutoCompleteNewRegistration from '../Guards/AutoCompleteNewRegistration';
 
 import '@/style/pages/Dashboard/Dashboard.scss';
 
@@ -21,16 +22,18 @@ export default function DashboardPrivatePages() {
   return (
     <EnsureAuthenticated>
       <EnsureUserEmailVerified>
-        <PrivatePagesProvider>
-          <Switch>
-            <Route path={'/setup'} children={<SetupWizardPage />} />
-            <Route path="/">
-              <EnsureOrganizationIsReady>
-                <Dashboard />
-              </EnsureOrganizationIsReady>
-            </Route>
-          </Switch>
-        </PrivatePagesProvider>
+        <AutoCompleteNewRegistration>
+          <PrivatePagesProvider>
+            <Switch>
+              <Route path={'/setup'} children={<SetupWizardPage />} />
+              <Route path="/">
+                <EnsureOrganizationIsReady>
+                  <Dashboard />
+                </EnsureOrganizationIsReady>
+              </Route>
+            </Switch>
+          </PrivatePagesProvider>
+        </AutoCompleteNewRegistration>
       </EnsureUserEmailVerified>
     </EnsureAuthenticated>
   );

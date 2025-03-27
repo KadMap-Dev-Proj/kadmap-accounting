@@ -55,7 +55,15 @@ export default function useApiRequest() {
         }
         if (status === 401) {
           setGlobalErrors({ session_expired: true });
-          setLogout();
+          
+          const tokenRefreshTimeout = setTimeout(() => {
+            const currentToken = getCookie('token');
+            if (!currentToken || currentToken === token) {
+              setLogout();
+            }
+          }, 5000);
+          
+          return Promise.reject(error);
         }
         if (status === 403) {
           setGlobalErrors({ access_denied: true });
